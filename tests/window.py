@@ -4,9 +4,6 @@ import tkinter as tk
 
 questions= {"1":"Hi","2":"hello"}
 
-for i in range(0,len(questions)):
-    questions[i]= Questions(questions.key([i]))
-
 root = Tk()
 root.minsize("1000","700")
 root.maxsize("1000","700");
@@ -38,7 +35,7 @@ class GUI:
 
 
         for question in questions:
-            self.mylist.insert(END,line.question)
+            self.mylist.insert(END,question)
             self.mylist.bind('<<ListboxSelect>>', self.getval)
 
         self.mylist.config(yscrollcommand=scrollbar.set)
