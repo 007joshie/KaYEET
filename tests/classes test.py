@@ -1,9 +1,9 @@
-questions= {"1":"Hi","2":"hello"}
+quiz= {"meta":{"title":"Computer Quiz","Author":"Joshua Boag"},1:{"How many cores does a computer have":{"1","2","3","4"}}}
 
 class Questions:
     def __init__(self):
         self.question= "Test"
         
 
-for i in range(0,len(questions)):
-    questions[i]= Questions(questions[i]))
+for key in quiz:
+   print("key: %s , value: %s" % (key, quiz[key]))
