@@ -72,14 +72,20 @@ class GUI:
         
         for i in range(1,int(quiz.meta['length'])+1):
             self.sidelist.insert(END,"Question "+str(i))
-            self.sidelist.bind('<<ListboxSelect>>', self.displayQuesiton)
-        self.sidelist.curselection()
+            self.sidelist.bind('<<ListboxSelect>>', self.select)
+            self.sidelist.curselection()
         
         self.sidelist.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.sidelist.yview)
         self.default()
 
+    def select(self,other):
+        a = int(str(self.sidelist.get(self.sidelist.curselection())).split(" ")[1])
+        print("a=",a)
+        self.displayQuesiton(self,a)
+
     def displayQuesiton(self,other=None,Qnum=None):
+        print("Qnum ",Qnum)
         
         if self.isDisabled() == True:
             self.choiceOne.configure(state=DISABLED)
