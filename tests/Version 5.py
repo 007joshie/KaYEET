@@ -12,34 +12,31 @@ class Questions:
         #quiz= Questions(**data)
 
 
-class Quiz:
-    def __init__(self):
-        self.fileExplore()
-        
 
-    def fileExplore(self):
-        self.filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select file",filetypes = (("json files","*.json"),("all files","*.*")))
-        print (self.filename)
-        self.loadQuiz(self.filename)
-        
-    def loadQuiz(self,filename):
-        with open(filename) as x:
-            self.jsonDump = json.loads(x.read())
-        self.get= Questions(**dict(self.jsonDump))
-        print(self.get)
+def fileExplore():
+    filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select KaYEET Quiz file",filetypes = (("json files","*.json"),("all files","*.*")))
+    print (filename)
+    loadQuiz(filename)
+    
+def loadQuiz(filename):
+    with open(filename) as x:
+        jsonDump = json.loads(x.read())
+    global Quiz
+    Quiz= Questions(**dict(jsonDump))
+    print(Quiz)
         
 
 class QuizGUI:
     def default(self):
         self.sidelist.selection_clear(0, END)
         self.sidelist.selection_set( first = 0 )
-        self.titlevar.set(Quiz.get.questions["Q1"]['question'])
-        self.choiceOneVar.set(Quiz.get.questions["Q1"]['choices'][0])
-        self.choiceTwoVar.set(Quiz.get.questions["Q1"]['choices'][1])
-        self.choiceThreeVar.set(Quiz.get.questions["Q1"]['choices'][2])
-        self.choiceFourVar.set(Quiz.get.questions["Q1"]['choices'][3])
+        self.titlevar.set(Quiz.questions["Q1"]['question'])
+        self.choiceOneVar.set(Quiz.questions["Q1"]['choices'][0])
+        self.choiceTwoVar.set(Quiz.questions["Q1"]['choices'][1])
+        self.choiceThreeVar.set(Quiz.questions["Q1"]['choices'][2])
+        self.choiceFourVar.set(Quiz.questions["Q1"]['choices'][3])
         self.__answersCorrect=0
-        for i in range(1,int(Quiz.get.meta['length'])+1):
+        for i in range(1,int(Quiz.meta['length'])+1):
             self.sidelist.itemconfig(i-1, {'fg': 'black'})
         self.questionsAnswered=[]
         self.displayQuesiton(self,1)
@@ -109,7 +106,7 @@ class QuizGUI:
         self.skip= Button(self.mainarea, text="Skip",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.skip)
         self.skip.grid(row=5,column=1,sticky="E",padx=self.choicePadX, pady=self.choicePadY)
         
-        for i in range(1,int(Quiz.get.meta['length'])+1):
+        for i in range(1,int(Quiz.meta['length'])+1):
             self.sidelist.insert(END,"Question "+str(i))
             self.sidelist.bind('<<ListboxSelect>>', self.select)
             self.sidelist.curselection()
@@ -145,11 +142,11 @@ class QuizGUI:
         else:
             pass
 
-        self.titlevar.set(Quiz.get.questions["Q"+str(Qnum)]['question'])
-        self.choiceOneVar.set(Quiz.get.questions["Q"+str(Qnum)]['choices'][0])
-        self.choiceTwoVar.set(Quiz.get.questions["Q"+str(Qnum)]['choices'][1])
-        self.choiceThreeVar.set(Quiz.get.questions["Q"+str(Qnum)]['choices'][2])
-        self.choiceFourVar.set(Quiz.get.questions["Q"+str(Qnum)]['choices'][3])
+        self.titlevar.set(Quiz.questions["Q"+str(Qnum)]['question'])
+        self.choiceOneVar.set(Quiz.questions["Q"+str(Qnum)]['choices'][0])
+        self.choiceTwoVar.set(Quiz.questions["Q"+str(Qnum)]['choices'][1])
+        self.choiceThreeVar.set(Quiz.questions["Q"+str(Qnum)]['choices'][2])
+        self.choiceFourVar.set(Quiz.questions["Q"+str(Qnum)]['choices'][3])
     
     def onExit(self):
         self.master.quit()
@@ -166,7 +163,7 @@ class QuizGUI:
 
     def answercheck(self,choice):
         getquestionnum= int(str(self.sidelist.get(self.sidelist.curselection())).split(" ")[1])
-        answer= Quiz.get.questions["Q"+str(getquestionnum)]['answer']
+        answer= Quiz.questions["Q"+str(getquestionnum)]['answer']
         if answer == choice:
             self.__answersCorrect=self.__answersCorrect+1
             print("Correct:",self.__answersCorrect)
@@ -189,11 +186,11 @@ class QuizGUI:
         self.displayQuesiton()
 
     def skip(self):
-        if self.getval() == (int(Quiz.get.meta['length'])):
+        if self.getval() == (int(Quiz.meta['length'])):
             start=1
         else:
             start=self.getval()
-        for i in range(start,int(Quiz.get.meta['length'])+1):
+        for i in range(start,int(Quiz.meta['length'])+1):
             if i not in self.questionsAnswered:
                 if i == self.getval():
                     continue
@@ -204,13 +201,13 @@ class QuizGUI:
                     self.sidelist.selection_set( first = i-1 )
                     return
     def next(self):
-        if len(self.questionsAnswered) == int(Quiz.get.meta['length']):
+        if len(self.questionsAnswered) == int(Quiz.meta['length']):
             print("Quiz Complete?")
-        if self.getval() == (int(Quiz.get.meta['length'])):
+        if self.getval() == (int(Quiz.meta['length'])):
             start=1
         else:
             start=self.getval()
-        for i in range(start,int(Quiz.get.meta['length'])+1):
+        for i in range(start,int(Quiz.meta['length'])+1):
             if i not in self.questionsAnswered:
                 if i == self.getval():
                     continue
@@ -229,22 +226,40 @@ class Homescreen:
         self.drawUI()
 
     def drawUI(self):
-        self.title = Label(self.master, text="KaYEET", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
-        self.title.grid(row=0,column=0,sticky="we",columnspan=3)
         self.master.grid_columnconfigure(0, weight=1,uniform="yes")
         self.master.grid_columnconfigure(1, weight=1,uniform="yes")
         self.master.grid_columnconfigure(2, weight=1,uniform="yes")
+        self.master.grid_rowconfigure(1,weight=1,uniform="yes")
+        self.title = Label(self.master, text="KaYEET", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
+        self.title.grid(row=0,column=0,sticky="we",columnspan=3)
+
+        #self.selectedFileVar= StringVar(self.master)
+        #self.selectedFile = Label(self.master, textvar=self.selectedFileVar, bg="lightgrey", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=10)
+        #self.selectedFile.grid(row=1,column=0,sticky="we",columnspan=3)
+
+        self.sidelist = Listbox(self.master,bg="#F0F0F0",fg="#757515",font=("Montserrat",16),activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
+        self.sidelist.config()
+        self.sidelist.grid(row=1, column=0, sticky="NSWE",columnspan=3,padx=200,pady=20)
+        self.scrollbar = tk.Scrollbar(self.sidelist)
+        self.scrollbar.pack( side = RIGHT, fill = Y )
+
+        for i in range(1,10):
+            self.sidelist.insert(END,"Quiz "+str(i))
+            self.sidelist.curselection()
+        
+        self.sidelist.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.sidelist.yview)
 
         self.buttonWidth=20
         self.buttonHeight=2
-        self.buttonPadY=20
+        self.buttonPadY=10
         self.buttonFont= font.Font(family="Montserrat", size=16, weight='bold')
         self.button1 = tk.Button(self.master, text = 'Start', command = self.new_window,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
-        self.button1.grid(row=1,column=0,pady=self.buttonPadY)
-        self.button2 = tk.Button(self.master, text = 'Open', command = self.call,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
-        self.button2.grid(row=1,column=1,pady=self.buttonPadY)
-        self.button3 = tk.Button(self.master, text = 'Create', command = self.new_window,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
-        self.button3.grid(row=1,column=2,pady=self.buttonPadY)
+        self.button1.grid(row=3,column=0,pady=self.buttonPadY)
+        self.button2 = tk.Button(self.master, text = 'Open', command = self.click,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button2.grid(row=3,column=1,pady=self.buttonPadY)
+        self.button3 = tk.Button(self.master, text = 'Create',relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button3.grid(row=3,column=2,pady=self.buttonPadY)
 
     def new_window(self):
         self.newWindow = tk.Toplevel(self.master)
@@ -252,9 +267,9 @@ class Homescreen:
         self.newWindow.maxsize("1000","700")
         self.app = QuizGUI(self.newWindow)
 
-    def call(self):
-        app=Quiz()
-
+    def click(self):
+        fileExplore()
+    
 def init():   
     root = Tk()
     root.minsize("1000","700")
