@@ -10,8 +10,7 @@ class Questions:
     def __init__(self, **entries):
         self.__dict__.update(entries)
         #quiz= Questions(**data)
-
-
+        
 
 def fileExplore():
     filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select KaYEET Quiz file",filetypes = (("json files","*.json"),("all files","*.*")))
@@ -19,11 +18,15 @@ def fileExplore():
     loadQuiz(filename)
     
 def loadQuiz(filename):
-    with open(filename) as x:
-        jsonDump = json.loads(x.read())
-    global Quiz
-    Quiz= Questions(**dict(jsonDump))
-    print(Quiz)
+    if filename != int:
+        with open(filename) as x:
+            jsonDump = json.loads(x.read())
+        global Quiz
+        Quiz= Questions(**dict(jsonDump))
+        print(Quiz)
+    if filename == int and filename > 0 and filename < 10:
+        
+        Quiz= Questions(**custom)
         
 
 class QuizGUI:
@@ -235,7 +238,8 @@ class Homescreen:
         self.title.grid(row=0,column=0,sticky="we",columnspan=3)
 
         self.selectedFileVar= StringVar(self.master)
-        self.selectedFile = Label(self.master, textvar=self.selectedFileVar, bg="lightgrey", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=10)
+        self.selectedFileVar.set("Select a Built-in Quiz or click 'Open' to Play your Own")
+        self.selectedFile = Label(self.master, textvar=self.selectedFileVar, bg="lightgrey", fg="Black",font=('Helvetica Neue',14,"normal"),wraplength=700,pady=10)
         self.selectedFile.grid(row=1,column=0,sticky="we",columnspan=3)
 
         self.browseQuiz = Listbox(self.master,bg="lightgrey",fg="#757515",bd=1,height=2,font=("Montserrat",16),activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
@@ -255,7 +259,7 @@ class Homescreen:
         self.buttonHeight=2
         self.buttonPadY=10
         self.buttonFont= font.Font(family="Montserrat", size=16, weight='bold')
-        self.button1 = tk.Button(self.master, text = 'Start', command = self.new_window,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button1 = tk.Button(self.master, text = 'Start', command = self.startQuiz,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
         self.button1.grid(row=3,column=0,pady=self.buttonPadY)
         self.button2 = tk.Button(self.master, text = 'Open', command = self.click,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
         self.button2.grid(row=3,column=1,pady=self.buttonPadY)
@@ -263,7 +267,12 @@ class Homescreen:
         self.button3.grid(row=3,column=2,pady=self.buttonPadY)
 
     def select(self,other):
-        self.selectedFileVar.set(self.browseQuiz.curseselection())
+        self.filename= str("quiz"+str(int(self.browseQuiz.curselection()[0]+1)))
+        print(self.filename)
+        self.selectedFileVar.set("Selected: "+str(self.browseQuiz.get(self.browseQuiz.curselection())))
+
+    def startQuiz(self):
+         self.new_window()
 
     def new_window(self):
         self.newWindow = tk.Toplevel(self.master)
