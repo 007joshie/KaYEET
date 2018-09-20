@@ -43,6 +43,9 @@ class QuizGUI:
             self.sidelist.itemconfig(i-1, {'fg': 'black'})
         self.questionsAnswered=[]
         self.displayQuesiton(self,1)
+
+    def clearFrame(self):
+        self.mainarea.destroy()
     
     def __init__(self, master):
         # sidebar
@@ -59,6 +62,7 @@ class QuizGUI:
         fileMenu = Menu(menubar)
         fileMenu.add_command(label="Exit", command=self.onExit)
         fileMenu.add_command(label="Reset", command=self.default)
+        fileMenu.add_command(label="Clear Frame", command=self.clearFrame)
         menubar.add_cascade(label="File", menu=fileMenu)
 
         #Main content area
