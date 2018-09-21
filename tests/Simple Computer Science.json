@@ -1,0 +1,49 @@
+{
+    "meta": {
+        "title": "Computer Quiz",
+        "author": "Joshua Boag",
+        "length": 4
+    },
+    "questions": {
+        "Q1": {
+            "question": "Every Network Interface Card has a _______ address, which is a unique identifier?",
+            "choices": [
+                "MAC",
+                "GUI",
+                "CPU",
+                "NIC"
+            ],
+            "answer": 0
+        },
+        "Q2": {
+            "question": "What is the brain of the computer?",
+            "choices": [
+                "RAM",
+                "GPU",
+                "CPU",
+                "Motherboard"
+            ],
+            "answer": 2
+        },
+        "Q3": {
+            "question": "An algorithm is ...",
+            "choices": [
+                "Donut",
+                "A set of Instructions",
+                "A Pack of Cards",
+                "An Abacus"
+            ],
+            "answer": 2
+        },
+	"Q4": {
+            "question": "An .exe is ...",
+            "choices": [
+                "Executive",
+                "Exercise",
+                "Extermination",
+                "Executable"
+            ],
+            "answer": 3
+	}
+    }
+}

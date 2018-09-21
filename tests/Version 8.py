@@ -12,10 +12,10 @@ class Questions:
         #quiz= Questions(**data)
         
 
-def fileExplore():
-    filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select KaYEET Quiz file",filetypes = (("json files","*.json"),("all files","*.*")))
-    print (filename)
-    loadQuiz(filename)
+#def fileExplore():
+   # filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select KaYEET Quiz file",filetypes = (("json files","*.json"),("all files","*.*")))
+    ##print (filename)
+    #loadQuiz(filename)
     
 global Quiz
 data = {"meta":{"title":"Computer Quiz","author":"Joshua Boag","length":3},"questions":{"Q1":{"question":"How many Bits are in a Byte?","choices":["8 Bits","2 Bits","6 Bits","4 Bits"],"answer":1},"Q2":{"question":"Where many","choices":["1","2","three","4"],"answer":4},"Q3":{"question":"How much","choices":["one","2","3","4"],"answer":3}}}
@@ -306,12 +306,12 @@ class QuizGUI:
         self.app = QuizGUI(self.newWindow)
 
     def click(self):
-        fileExplore()
+        self.fileExplore()
 
-    def fileExplore():
+    def fileExplore(self):
+        self.filename = None
         self.filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select KaYEET Quiz file",filetypes = (("json files","*.json"),("all files","*.*")))
-        print (filename)
-
+        print(self.filename)
 
 def init():   
     root = Tk()
