@@ -85,13 +85,183 @@ class QuizGUI:
         else:
             pass
 
+    def createQuiz(self):
+        self.clearMaster()
+        self.Quiz={}
+        self.Quiz.update({'meta':{'author':"unknown","title":"unknown",'length':1}})
+        self.Quiz.update({'questions':{'Q1':{}}})
+        self.sidebar = tk.Frame(self.master, width=200, bg='#F0F0F0', height=500, relief='sunken', borderwidth=0)
+        self.sidebar.pack(expand=False, fill='both', side='left', anchor='nw')
+        self.scrollbar = tk.Scrollbar(self.master)
+        self.scrollbar.pack( side = LEFT, fill = Y )
+        self.createQuizList = Listbox(self.sidebar,height=700,width=15,bg="#F0F0F0",fg="#757515",font=("Montserrat",16),selectmode="tk.BROWSE", exportselection=False,activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
+        self.createQuizList.pack(padx=5,pady=50)
+        
+        self.createdQuestions=1
+        self.Qnum=1
+        self.mainarea = tk.Frame(self.master, background='#F0F0F0', width=500, height=500)
+        self.mainarea.pack(expand=True, fill='both', side='right')
+
+        self.title = Label(self.mainarea, text="KaYEET Quiz Creator", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
+        self.title.grid(row=0,column=0,sticky="we",columnspan=4)
+
+        self.save= Button(self.mainarea, text="Save",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.saveQuestion)
+        self.save.grid(row=1,column=1,sticky="E",padx=40, pady=10)
+
+        self.newQuestion= Button(self.mainarea, text="New Question",relief="flat", bg="#46178f", fg="white", width=15,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.createQuizQuestion)
+        self.newQuestion.grid(row=1,column=0,sticky="W",padx=40, pady=10)
+
+        self.errortitleVar= StringVar(self.master)
+        self.errortitle = Label(self.mainarea, textvar=self.errortitleVar, bg="#F0F0F0", fg="red",font=('Helvetica Neue',12,"bold"),wraplength=400,pady=5)
+        self.errortitle.grid(row=2,column=0,columnspan=4,sticky="EWN")
+
+        self.questionTitleVar = StringVar(self.master)
+        self.questionTitle = Entry(self.mainarea, textvar=self.questionTitleVar, bg="#F0F0F0", fg="black",font=('Helvetica Neue',18))
+        self.questionTitle.grid(row=2,column=0,sticky="we",columnspan=4,padx=40,pady=40,ipady=5,ipadx=5)
+        self.mainarea.grid_columnconfigure(0, weight=1)
+        self.mainarea.grid_columnconfigure(1, weight=1)
+        self.mainarea.grid_rowconfigure(0, weight=0)
+        self.mainarea.grid_rowconfigure(1, weight=0)
+        self.mainarea.grid_rowconfigure(2, weight=0)
+        self.mainarea.grid_rowconfigure(3, weight=2)
+        self.mainarea.grid_rowconfigure(4, weight=2)
+        self.mainarea.grid_rowconfigure(5, weight=1)
+
+        self.setAnswerVar= tk.IntVar()
+        self.setAnswer= tk.Radiobutton(self.mainarea,padx = 0, variable=self.setAnswerVar,value=0)
+        self.setAnswer.grid(row=3,column=0,sticky="W")
+        self.entryOneVar= StringVar(self.master)
+        self.entryOne = Entry(self.mainarea,textvar=self.entryOneVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
+        self.entryOne.grid(row=3,column=0,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
+
+        self.setAnswer= tk.Radiobutton(self.mainarea,padx = 0, variable=self.setAnswerVar,value=1)
+        self.setAnswer.grid(row=3,column=1,sticky="W")
+        self.entryTwoVar= StringVar(self.master)
+        self.entryTwo = Entry(self.mainarea,textvar=self.entryTwoVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
+        self.entryTwo.grid(row=3,column=1,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
+
+        self.setAnswer= tk.Radiobutton(self.mainarea,padx = 0, variable=self.setAnswerVar,value=2)
+        self.setAnswer.grid(row=4,column=0,sticky="W")
+        self.entryThreeVar= StringVar(self.master)
+        self.entryThree = Entry(self.mainarea,textvar=self.entryThreeVar,relief="flat",bg="lightgrey",fg="black",font=('Helvetica Neue',16))
+        self.entryThree.grid(row=4,column=0,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
+
+        self.setAnswer= tk.Radiobutton(self.mainarea,padx =0, variable=self.setAnswerVar,value=3)
+        self.setAnswer.grid(row=4,column=1,sticky="W")
+        self.entryFourVar= StringVar(self.master)
+        self.entryFour = Entry(self.mainarea,textvar=self.entryFourVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
+        self.entryFour.grid(row=4,column=1,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
+
+        self.export= Button(self.mainarea, text="Export",relief="flat", bg="#46178f", fg="white", width=15,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.export)
+        self.export.grid(row=5,column=1,sticky="E",padx=40, pady=5)
+
+        self.createQuizList.insert(END,"Question 1")
+        self.createQuizList.bind('<<ListboxSelect>>', self.createQuizListSelect)
+
+    def export(self):
+        self.saveQuestion()
+        if self.createdQuestions < 1:
+            self.errortitleVar.set("Error! Must have a minimum of 3 Questions!")
+            return
+        try:
+            for i in range(1,self.createdQuestions+1):
+                self.Quiz['questions']["Q"+str(i)]['question']
+                for x in range(0,4):
+                    self.Quiz['questions']["Q"+str(i)]['choices'][x]
+        except:
+            print(i)
+        self.mainarea.pack_forget()
+        self.createQuizList.delete(0, END)
+        self.createQuizList.insert(END,"Export")
+        self.createQuizList.selection_clear(0, END)
+        self.createQuizList.selection_set("end")
+        self.Quiz["meta"]['length']=self.createdQuestions
+        print(self.Quiz)
+        self.mainarea = tk.Frame(self.master, background='#F0F0F0', width=900, height=500)
+        self.mainarea.pack(expand=True, fill='both', side='right')
+        self.mainarea.grid_columnconfigure(0, weight=1)
+        self.title = Label(self.mainarea, text="KaYEET Quiz Creator", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
+        self.title.grid(row=0,column=0,sticky="we",columnspan=4)
+        self.quizNameVar= StringVar(self.master)
+        self.quizNameLabel= Label(self.mainarea, text="Quiz Name", bg="#F0F0F0", fg="black",font=('Helvetica Neue',15))
+        self.quizNameLabel.grid(row=1,column=0,sticky="W")
+        self.quizName = Entry(self.mainarea,textvar=self.entryTwoVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
+        self.quizName.grid(row=1,column=1,sticky="E", pady=30,padx=40,ipady=5,ipadx=50)
+        
+
+    def createQuizListSelect(self,other):
+        self.Qnum = int(str(self.createQuizList.get(self.createQuizList.curselection())).split(" ")[1])
+        try:
+            self.questionTitleVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['question'])
+            self.entryOneVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][0])
+            self.entryTwoVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][1])
+            self.entryThreeVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][2])
+            self.entryFourVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][3])
+        except:
+            self.questionTitleVar.set("Insert Question Here")
+            self.entryOneVar.set("")
+            self.entryTwoVar.set("")
+            self.entryThreeVar.set("")
+            self.entryFourVar.set("")
+        
+    def createQuizQuestion(self):
+        if self.entryOneVar.get() == "" or self.entryTwoVar.get() == "" or self.entryThreeVar.get() == "" or self.entryFourVar.get() == "" or self.questionTitleVar.get() == "" or self.questionTitleVar.get() == "Insert Question Here":
+            self.saveQuestion()
+            return
+        else:
+            self.createdQuestions=self.createdQuestions+1
+            self.Quiz['questions'].update({"Q"+str(self.createdQuestions):{}})
+            self.createQuizList.insert(END,"Question "+str(self.createdQuestions))
+
+    def saveQuestion(self):
+        self.entryOne.config(bg="lightgrey")
+        self.entryTwo.config(bg="lightgrey")
+        self.entryThree.config(bg="lightgrey")
+        self.entryFour.config(bg="lightgrey")
+        self.questionTitle.config(bg="lightgrey")
+        print(self.questionTitleVar)
+        if self.questionTitleVar.get() == "" or self.questionTitleVar.get() == "Insert Question Here":
+            self.errortitleVar.set("Error! Please enter Question!")
+            self.questionTitle.config(bg="red")
+            return
+        if self.entryOneVar.get() == "":
+            print("True")
+            self.errortitleVar.set("Error! Please enter a option value")
+            self.entryOne.config(bg="red")
+            return
+        if self.entryTwoVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value")
+            self.entryTwo.config(bg="red")
+            return
+        if self.entryThreeVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value")
+            self.entryThree.config(bg="red")
+            return
+        if self.entryFourVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value")
+            self.entryFour.config(bg="red")
+            return
+        self.Quiz['questions'].update({"Q"+str(self.Qnum):{'question':self.questionTitleVar.get()}})
+        self.Quiz['questions']["Q"+str(self.Qnum)].update({'choices':[]})
+        self.Quiz['questions']["Q"+str(self.Qnum)].update({'answer':self.setAnswerVar.get()})
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryOneVar.get())
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryTwoVar.get())
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryThreeVar.get())
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryFourVar.get())
+        self.errortitleVar.set("")
+        print(self.Quiz)
+            
+
     def quizComplete(self):
         self.menubar.destroy()
         self.sidebar.pack_forget()
         self.scrollbar.pack_forget()
         self.mainarea.pack_forget()
+
+        self.finishFrame= tk.Frame(self.master,width=500, height=500, bg='#F0F0F0', relief='sunken', borderwidth=0)
+        self.finishFrame.pack()
         self.finishText= StringVar(self.master)
-        finishTitle= Label(self.master, textvar=self.finishText, bg="#F0F0F0", fg="black",font=('Helvetica Neue',24),wraplength=700,pady=10)
+        finishTitle= Label(self.finishFrame, textvar=self.finishText, bg="#F0F0F0", fg="black",font=('Helvetica Neue',24),wraplength=700,pady=10)
         finishTitle.pack(fill='x')
 
         c_width = 600
@@ -100,7 +270,7 @@ class QuizGUI:
         c_padY=c_width/10
         c_padX=c_width/10
         c_barwidth=c_width/3
-        c = Canvas(self.master, width=c_width, height=c_height,bd=0)
+        c = Canvas(self.finishFrame, width=c_width, height=c_height,bd=0)
         c.pack()
         print(self.__answersCorrect)
         correct= len(self.__answersCorrect)
@@ -112,11 +282,11 @@ class QuizGUI:
         if len(self.questionsAnswered) == 0:
             print("No Questions Answered")
             self.finishText.set("Uhm, did you even try?!")
-            graphY1= c_padX
-            graphY2= c_padX
+            graphY1= c_padX+5
+            graphY2= c_padX+5
         elif len(self.__answersCorrect) == 0:
             self.finishText.set("Better Luck Nextime!")
-            graphY1= c_padX
+            graphY1= c_padX+5
             graphY2= c_height-c_padX
         if len(self.__answersCorrect) == int(self.meta['meta']['length']):            
             print("None Wrong")
@@ -133,12 +303,15 @@ class QuizGUI:
         c.create_text((c_padX*2)+(c_barwidth*1.5), c_height-graphY2-(c_padY/2), text="Wrong: "+str(wrong),font=('Helvetica Neue',16,"bold"))
         c.create_line(0, c_height-c_padY, c_width, c_height-c_padY,width=4)
 
-        self.resetHome= Button(self.master, text="Home",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.resetAll)
+        self.resetHome= Button(self.finishFrame, text="Home",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.resetAll)
         self.resetHome.pack()
 
     def resetAll(self):
         self.itemsPacked= False
-        self.preload()
+        self.finishFrame.destroy()
+        self.title.destroy()
+        self.sidelist.destroy()
+        self.home()
 
     def clearFrame(self):
         self.itemsPacked= False
@@ -208,8 +381,8 @@ class QuizGUI:
         self.selectedFile = Label(self.homescreen, textvar=self.selectedFileVar, bg="lightgrey", fg="Black",font=('Helvetica Neue',14,"normal"),wraplength=700,pady=10)
         self.selectedFile.grid(row=3,column=0,sticky="we",columnspan=3)
 
-        self.browseQuiz = Listbox(self.homescreen,bg="lightgrey",fg="#757515",bd=1,height=2,font=("Montserrat",16),activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
-        self.browseQuiz.grid(row=2, column=0, sticky="NWES",columnspan=3,padx=150,pady=10,rowspan=1)
+        self.browseQuiz = Listbox(self.homescreen,bg="lightgrey",fg="black",bd=1,height=2,font=("Montserrat",16),activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
+        self.browseQuiz.grid(row=2, column=0, sticky="NWES",columnspan=3,padx=150,pady=10,rowspan=1,ipady=10,ipadx=10)
         self.scrollbar = tk.Scrollbar(self.browseQuiz)
         self.scrollbar.pack( side = RIGHT, fill = Y )
 
@@ -235,7 +408,7 @@ class QuizGUI:
         self.button1.grid(row=4,column=0,pady=self.buttonPadY)
         self.button2 = tk.Button(self.homescreen, text = 'Open', command = self.fileExplore,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
         self.button2.grid(row=4,column=1,pady=self.buttonPadY)
-        self.button3 = tk.Button(self.homescreen, text = 'Create',relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button3 = tk.Button(self.homescreen, text = 'Create',command=self.createQuiz,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
         self.button3.grid(row=4,column=2,pady=self.buttonPadY)
 
     def select(self,other):

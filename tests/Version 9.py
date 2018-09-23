@@ -90,8 +90,11 @@ class QuizGUI:
         self.sidebar.pack_forget()
         self.scrollbar.pack_forget()
         self.mainarea.pack_forget()
+
+        self.finishFrame= tk.Frame(self.master,width=500, height=500, bg='#F0F0F0', relief='sunken', borderwidth=0)
+        self.finishFrame.pack()
         self.finishText= StringVar(self.master)
-        finishTitle= Label(self.master, textvar=self.finishText, bg="#F0F0F0", fg="black",font=('Helvetica Neue',24),wraplength=700,pady=10)
+        finishTitle= Label(self.finishFrame, textvar=self.finishText, bg="#F0F0F0", fg="black",font=('Helvetica Neue',24),wraplength=700,pady=10)
         finishTitle.pack(fill='x')
 
         c_width = 600
@@ -100,7 +103,7 @@ class QuizGUI:
         c_padY=c_width/10
         c_padX=c_width/10
         c_barwidth=c_width/3
-        c = Canvas(self.master, width=c_width, height=c_height,bd=0)
+        c = Canvas(self.finishFrame, width=c_width, height=c_height,bd=0)
         c.pack()
         print(self.__answersCorrect)
         correct= len(self.__answersCorrect)
@@ -112,11 +115,11 @@ class QuizGUI:
         if len(self.questionsAnswered) == 0:
             print("No Questions Answered")
             self.finishText.set("Uhm, did you even try?!")
-            graphY1= c_padX
-            graphY2= c_padX
+            graphY1= c_padX+5
+            graphY2= c_padX+5
         elif len(self.__answersCorrect) == 0:
             self.finishText.set("Better Luck Nextime!")
-            graphY1= c_padX
+            graphY1= c_padX+5
             graphY2= c_height-c_padX
         if len(self.__answersCorrect) == int(self.meta['meta']['length']):            
             print("None Wrong")
@@ -133,12 +136,15 @@ class QuizGUI:
         c.create_text((c_padX*2)+(c_barwidth*1.5), c_height-graphY2-(c_padY/2), text="Wrong: "+str(wrong),font=('Helvetica Neue',16,"bold"))
         c.create_line(0, c_height-c_padY, c_width, c_height-c_padY,width=4)
 
-        self.resetHome= Button(self.master, text="Home",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.resetAll)
+        self.resetHome= Button(self.finishFrame, text="Home",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.resetAll)
         self.resetHome.pack()
 
     def resetAll(self):
         self.itemsPacked= False
-        self.preload()
+        self.finishFrame.destroy()
+        self.title.destroy()
+        self.sidelist.destroy()
+        self.home()
 
     def clearFrame(self):
         self.itemsPacked= False
