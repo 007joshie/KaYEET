@@ -11,6 +11,7 @@
 #---------------------Editing Guidelines!---------------------
 # Frames are assigned to the 'self.master' using .pack()
 # Elements inside Frames are assigned to parents using .grid()
+# The grid function is for assigning elements to specfic columns and rows for a window
 #
 # All elements and variables are stored in the QuizGUI class
 # New Elements must be assigned to a frame with an unused grid coordinate (eg. column=2, row=3)
@@ -20,16 +21,16 @@
 # Any function inside the QuizGUI class that is leading with 'self.' can be accessed by any other class function.
 # Variables that don't lead with 'self.' cannot be accessed within the QuizGUI class
 #
-# Encap
+# Encapsulation is used for the Quiz questions so users can't cheat using the console to print out the dictionary
 
 # Install Dependencies 
-from tkinter import *           # Import tkinter 
-#from tkinter import ttk         # Import tkk
-import tkinter as tk            # Import tk
-from tkinter import font
-from tkinter import filedialog
-import time,os,json,glob
-from PIL import ImageTk
+from tkinter import *           # Import tkinter
+#from tkinter import ttk        # Import tkk for special elements
+import tkinter as tk            # Import tk for special elements
+from tkinter import font        # Import Fonts for custom fonts that arn't natively supported in tkinter
+from tkinter import filedialog  # Import filedialog for 'open' files in current or external directories
+import os,json,glob             # Import os for getting the filepath, get json for diction loading and exporting, Glob for file finding in current directory
+from PIL import ImageTk         # Import Python Image Library to open .png files
 
 # When called, the Questions class converts an entire file (".YEET") to a Python Dictionary.
 # This is a faster method than individually appending a value to each key in a dictionary
@@ -41,6 +42,8 @@ class QuizGUI: # The entire programs main class
     def __init__(self, master): # 
         self.master=master # Defines the objects binding class
         self.home() # Runs the starting homescreen. This is a function due to the fact it needs to be run mulitiple times (After finishing a Quiz / After Creating a Quiz)
+
+# Homescreen #
 
     def home(self):  # Homescreen Function 
         # Defines the homescreen frame (That will hold all the Homescreen buttons and other visual elements)
@@ -147,6 +150,7 @@ class QuizGUI: # The entire programs main class
             self.button1.config(state=DISABLED) # Make the 'start' button unclickable so you can't start a quiz without questions etc
             self.selectedFileVar.set("No File Selected! Try Again or Select a Quiz Above!") # Display this message in selectedFile element
 
+# Quiz Window #
     # When the start button is clicked
     # The start button can only hold one command, but multiple need to be run. This function intializes all those startup functions
     # This function is reused after Quiz create or the results page
@@ -365,26 +369,30 @@ class QuizGUI: # The entire programs main class
         self.questionsAnswered.append(self.getval())
         self.displayQuesiton() # Disables question from being answered twice
 
-    # This function will 
+    # This function will go to te next avaliable question that is unanswered
+    # If all questions are answered, then it will not skip to any questions
     def skip(self):
-        if self.getval() == (int(self.__quiz.meta['length'])):
-            start=1
+        if self.getval() == (int(self.__quiz.meta['length'])):  # If the question is the last value on the listbox list
+            start=1 # Go back to the top of the listbox list
         else:
-            start=self.getval()
+            start=self.getval() # else, get the current question
+        # Go to the next unanswered question
         for i in range(start,int(self.__quiz.meta['length'])+1):
             if i not in self.questionsAnswered:
                 if i == self.getval():
                     continue
                 else:
-                    self.displayQuesiton(Qnum=i)
-                    self.sidelist.selection_clear(0, END)
-                    self.sidelist.selection_set( first = i-1 )
+                    self.displayQuesiton(Qnum=i) # Display unanswered question
+                    self.sidelist.selection_clear(0, END) # clear selection
+                    self.sidelist.selection_set( first = i-1 ) # set selection to unanswered question
                     return
+    # Next Question           
+    # This works the same way as the above function except if all questions are answered, then it will automatically finish the quiz
     def next(self):
-        if len(self.questionsAnswered) == int(self.__quiz.meta['length']):
-            self.quizComplete()
+        if len(self.questionsAnswered) == int(self.__quiz.meta['length']): # If the question is the last value on the listbox list
+            self.quizComplete() # Calls the function to end the quiz and display results
         if self.getval() == (int(self.__quiz.meta['length'])):
-            start=1
+            start=1 # Go back to the top of the listbox list
         else:
             start=self.getval()
         for i in range(start,int(self.__quiz.meta['length'])+1):
@@ -393,67 +401,91 @@ class QuizGUI: # The entire programs main class
                     continue
                 else:
                     self.sidelist.selection_set( first = i-1 )
-                    self.displayQuesiton(Qnum=i)
+                    self.displayQuesiton(Qnum=i) # Display unanswered question
                     self.sidelist.selection_clear(0, END)
                     self.sidelist.selection_set( first = i-1 )
                     return
 
-###
-    def quizComplete(self):
-        self.menubar.destroy()
-        self.sidebar.pack_forget()
-        self.scrollbar.pack_forget()
-        self.mainarea.pack_forget()
+# Results Page #
 
+    # When the quiz is complete, this runs a new screen which displays statistics           
+    def quizComplete(self):
+        self.menubar.destroy()          # <-
+        self.sidebar.pack_forget()      #   | Deletes current frames
+        self.scrollbar.pack_forget()    #   |
+        self.mainarea.pack_forget()     # <-
+
+        # Creates new frame that results will be assigned to
         self.finishFrame= tk.Frame(self.master,width=500, height=500, bg='#F0F0F0', relief='sunken', borderwidth=0)
         self.finishFrame.pack()
+
+        # Displays message plus the score if greater than 0
         self.finishText= StringVar(self.master)
         finishTitle= Label(self.finishFrame, textvar=self.finishText, bg="#F0F0F0", fg="black",font=('Helvetica Neue',24),wraplength=700,pady=10)
         finishTitle.pack(fill='x')
 
-        c_width = 600
-        c_height = 340
-        c_linewidth=4
-        c_padY=c_width/10
-        c_padX=c_width/10
-        c_barwidth=c_width/3
-        c = Canvas(self.finishFrame, width=c_width, height=c_height,bd=0)
+        # A bar graph is drawn which shows the correct and wrong answers
+        # The variables below define the dimensions of the graph
+        c_width = 600  # Canvas width
+        c_height = 340 # Canvas height
+        c_linewidth=4 # Underline width
+        c_padY=c_width/10  # Defines padding
+        c_padX=c_width/10 # Defines padding
+        c_barwidth=c_width/3 # Defines the width of the bars
+
+        c = Canvas(self.finishFrame, width=c_width, height=c_height,bd=0) # Displayed on a new canvas
         c.pack()
+
+        # Get local variables for correct and wrong answers
+        # Unanswered questions are considered wrong
         correct= len(self.__answersCorrect)
         wrong=int(self.meta['meta']['length'])- correct
 
+        # Calculate the bar height value, the calculation is proportionate to each other and the height of the canvas
         graphY1=((c_height/(correct+wrong)))*correct
         graphY2=((c_height/(correct+wrong)))*wrong
 
+        # Based on the questions answered and answers correct, will a the message and graph output be different
+        # If no questions are answered
         if len(self.questionsAnswered) == 0:
             #print("No Questions Answered")
-            self.finishText.set("Uhm, did you even try?!")
+            self.finishText.set("Uhm, did you even try?!") # Displayed message
             graphY1= c_padX+5
             graphY2= c_padX+5
+
+        # If all questions are answered but none are correct
         elif len(self.__answersCorrect) == 0:
-            self.finishText.set("Better Luck Nextime!")
+            self.finishText.set("Better Luck Nextime!") # Displayed message
             graphY1= c_padX+5
             graphY2= c_height-c_padX
-        if len(self.__answersCorrect) == int(self.meta['meta']['length']):            
+
+        # If all questions are answered correctly
+        elif len(self.__answersCorrect) == int(self.meta['meta']['length']):            
             #print("None Wrong")
-            self.finishText.set("Congratulations!")
+            self.finishText.set("Congratulations!\nYou Scored: "+str(int((100/(correct+wrong))*correct))+"%") # Displayed message with percentage
             graphY1= c_height-c_padX
             graphY2= c_padX
+            
+        # if at least one question is answered
         elif len(self.questionsAnswered) != 0:
             #print("Normal")
-            self.finishText.set("Well Done!")
-        
+            if (100/(correct+wrong))*correct > 50:
+                self.finishText.set("Well Done!\nYou Scored: "+str(int((100/(correct+wrong))*correct))+"%") # Displayed message with percentage
+            elif (100/(correct+wrong))*correct > 30:
+                self.finishText.set("Good Effort!\nYou Scored: "+str(int((100/(correct+wrong))*correct))+"%") # Displayed message with percentage
+
+        # Draws the bar graph based on forementioned bar graph variables
         c.create_rectangle(c_padX, c_height-graphY1, c_barwidth+c_padX, c_height-c_padY, fill="green",outline="green")
         c.create_text(c_padX+(c_barwidth/2), c_height-graphY1-(c_padY/2), text="Correct: "+str(correct),font=('Helvetica Neue',16,"bold"))
         c.create_rectangle((c_padX*2)+c_barwidth, c_height-graphY2, c_barwidth*2+c_padX*2, c_height-c_padY, fill="red",outline="red")
         c.create_text((c_padX*2)+(c_barwidth*1.5), c_height-graphY2-(c_padY/2), text="Wrong: "+str(wrong),font=('Helvetica Neue',16,"bold"))
-        c.create_line(0, c_height-c_padY, c_width, c_height-c_padY,width=4)
+        c.create_line(0, c_height-c_padY, c_width, c_height-c_padY,width=4) # Draws underline
 
+        # Display a button that when clickedgoes to the homescreen
         self.resetHome= Button(self.finishFrame, text="Home",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.resetAll)
         self.resetHome.pack()
 
-    
-
+    # This function destroys the results frame and other elements, then displays homescreen
     def resetAll(self):
         self.itemsPacked= False
         self.finishFrame.destroy()
@@ -461,103 +493,92 @@ class QuizGUI: # The entire programs main class
         self.sidelist.destroy()
         self.home()
         
-###
-        
+# KaYEET QuizCreator #
+
+    # Display a new question or an existing question with the saved answers
     def createQuizListSelect(self,other):
-        self.Qnum = int(str(self.createQuizList.get(self.createQuizList.curselection())).split(" ")[1])
+        self.Qnum = int(str(self.createQuizList.get(self.createQuizList.curselection())).split(" ")[1]) # Gets Current Question
+        # Tries to set question and multichoice answers to a value if already defined
         try:
             self.questionTitleVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['question'])
             self.entryOneVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][0])
             self.entryTwoVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][1])
             self.entryThreeVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][2])
             self.entryFourVar.set(self.Quiz['questions']["Q"+str(self.Qnum)]['choices'][3])
+        # else set question and multichoice answers to intial values
         except:
             self.questionTitleVar.set("Insert Question Here")
             self.entryOneVar.set("")
             self.entryTwoVar.set("")
             self.entryThreeVar.set("")
             self.entryFourVar.set("")
-        
+
+    # Create a new quiz question
     def createQuizQuestion(self):
+        # Can't create a new question if the current question is not completed properly
         if self.entryOneVar.get() == "" or self.entryTwoVar.get() == "" or self.entryThreeVar.get() == "" or self.entryFourVar.get() == "" or self.questionTitleVar.get() == "" or self.questionTitleVar.get() == "Insert Question Here":
+            # Save the question to dictionary
             self.saveQuestion()
             return
         else:
+            # else create a new question and display that question in the sidebar
             self.createdQuestions=self.createdQuestions+1
             self.Quiz['questions'].update({"Q"+str(self.createdQuestions):{}})
             self.createQuizList.insert(END,"Question "+str(self.createdQuestions))
 
-    def saveQuestion(self):
-        self.entryOne.config(bg="lightgrey")
-        self.entryTwo.config(bg="lightgrey")
-        self.entryThree.config(bg="lightgrey")
-        self.entryFour.config(bg="lightgrey")
-        self.questionTitle.config(bg="lightgrey")
-        if self.questionTitleVar.get() == "" or self.questionTitleVar.get() == "Insert Question Here":
-            self.errortitleVar.set("Error! Please enter Question!")
-            self.questionTitle.config(bg="red")
-            return
-        if self.entryOneVar.get() == "":
-            self.errortitleVar.set("Error! Please enter a option value")
-            self.entryOne.config(bg="red")
-            return
-        if self.entryTwoVar.get() == "":
-            self.errortitleVar.set("Error! Please enter a option value")
-            self.entryTwo.config(bg="red")
-            return
-        if self.entryThreeVar.get() == "":
-            self.errortitleVar.set("Error! Please enter a option value")
-            self.entryThree.config(bg="red")
-            return
-        if self.entryFourVar.get() == "":
-            self.errortitleVar.set("Error! Please enter a option value")
-            self.entryFour.config(bg="red")
-            return
-        self.Quiz['questions'].update({"Q"+str(self.Qnum):{'question':self.questionTitleVar.get()}})
-        self.Quiz['questions']["Q"+str(self.Qnum)].update({'choices':[]})
-        self.Quiz['questions']["Q"+str(self.Qnum)].update({'answer':self.setAnswerVar.get()})
-        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryOneVar.get())
-        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryTwoVar.get())
-        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryThreeVar.get())
-        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryFourVar.get())
-        self.errortitleVar.set("")
-            
-            
+    # This function defines the layout of the Quiz creator    
     def createQuiz(self):
         self.clearMaster()
-        self.Quiz={}
-        self.Quiz.update({'meta':{'author':"unknown","title":"unknown",'length':1}})
-        self.Quiz.update({'questions':{'Q1':{}}})
+
+        # Below is the creation of a new list and its default contents
+        self.Quiz={} # New dictionary
+        self.Quiz.update({'meta':{'author':"unknown","title":"unknown",'length':1}}) # Update dictionary to store default values
+        self.Quiz.update({'questions':{'Q1':{}}}) # Create first question
+
+        # Create sidebar with listbox that displays each question eg. Question 1, Question 2, Question 3 etc
         self.sidebar = tk.Frame(self.master, width=200, bg='#F0F0F0', height=500, relief='sunken', borderwidth=0)
         self.sidebar.pack(expand=False, fill='both', side='left', anchor='nw')
         self.scrollbar = tk.Scrollbar(self.master)
         self.scrollbar.pack( side = LEFT, fill = Y )
         self.createQuizList = Listbox(self.sidebar,height=700,width=15,bg="#F0F0F0",fg="#757515",font=("Montserrat",16),selectmode="tk.BROWSE", exportselection=False,activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
         self.createQuizList.pack(padx=5,pady=50)
-        
+
+        # Set default lisbox value
+        self.createQuizList.insert(END,"Question 1")
+        self.createQuizList.bind('<<ListboxSelect>>', self.createQuizListSelect) # Bind the list item to createQuizListSelect()
+
+
+        # set default values for the current question number
         self.createdQuestions=1
         self.Qnum=1
+
+        # Create new frame that all elements will be assigned to
         self.mainarea = tk.Frame(self.master, background='#F0F0F0', width=500, height=500)
         self.mainarea.pack(expand=True, fill='both', side='right')
 
+        # create header title
         self.title = Label(self.mainarea, text="KaYEET Quiz Creator", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
         self.title.grid(row=0,column=0,sticky="we",columnspan=4)
 
+        # Create save button which when pressed, will store the values placed in the entryboxes
         self.save= Button(self.mainarea, text="Save",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.saveQuestion)
         self.save.grid(row=1,column=1,sticky="E",padx=40, pady=10)
 
+        # Create new question button which when pressed, will create a new question that the user can edit
         self.newQuestion= Button(self.mainarea, text="New Question",relief="flat", bg="#46178f", fg="white", width=15,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.createQuizQuestion)
         self.newQuestion.grid(row=1,column=0,sticky="W",padx=40, pady=10)
 
+        # Create error box if there are any areas, the user will be alerted
         self.errortitleVar= StringVar(self.master)
         self.errortitle = Label(self.mainarea, textvar=self.errortitleVar,relief="flat", bg="#F0F0F0", fg="red",font=('Helvetica Neue',12,"bold"),wraplength=400,pady=5)
         self.errortitle.grid(row=2,column=0,columnspan=4,sticky="EWN")
 
+        # Displays the question that the user has [yet to] input
         self.questionTitleVar = StringVar(self.master)
         self.questionTitle = Entry(self.mainarea, textvar=self.questionTitleVar, bg="lightgrey", fg="black",font=('Helvetica Neue',18))
         self.questionTitle.grid(row=2,column=0,sticky="we",columnspan=4,padx=40,pady=40,ipady=5,ipadx=5)
 
-
+        # Configure the grid layout
         self.mainarea.grid_columnconfigure(0, weight=1)
         self.mainarea.grid_columnconfigure(1, weight=1)
         self.mainarea.grid_rowconfigure(0, weight=0)
@@ -567,6 +588,12 @@ class QuizGUI: # The entire programs main class
         self.mainarea.grid_rowconfigure(4, weight=2)
         self.mainarea.grid_rowconfigure(5, weight=1)
 
+        # Radio buttons are used to store the answer on the corresponding question
+        # This is easier to implement than a dropdown for example
+        # Radio buttons by default can only have one option selected
+        
+        # Radio button next to entry boxes that store the multichoice answers
+        # Each radio button and entry box is assigned to different parts of the grid
         self.setAnswerVar= tk.IntVar()
         self.setAnswerVar.set(1)
         self.setAnswer= tk.Radiobutton(self.mainarea,padx = 0, variable=self.setAnswerVar,value=1)
@@ -575,107 +602,187 @@ class QuizGUI: # The entire programs main class
         self.entryOne = Entry(self.mainarea,textvar=self.entryOneVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
         self.entryOne.grid(row=3,column=0,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
 
+        # Radio button next to entry boxes that store the multichoice answers
         self.setAnswer= tk.Radiobutton(self.mainarea,padx = 0, variable=self.setAnswerVar,value=2)
         self.setAnswer.grid(row=3,column=1,sticky="W")
         self.entryTwoVar= StringVar(self.master)
         self.entryTwo = Entry(self.mainarea,textvar=self.entryTwoVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
         self.entryTwo.grid(row=3,column=1,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
 
+        # Radio button next to entry boxes that store the multichoice answers
         self.setAnswer= tk.Radiobutton(self.mainarea,padx = 0, variable=self.setAnswerVar,value=3)
         self.setAnswer.grid(row=4,column=0,sticky="W")
         self.entryThreeVar= StringVar(self.master)
         self.entryThree = Entry(self.mainarea,textvar=self.entryThreeVar,relief="flat",bg="lightgrey",fg="black",font=('Helvetica Neue',16))
         self.entryThree.grid(row=4,column=0,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
 
+        # Radio button next to entry boxes that store the multichoice answers
         self.setAnswer= tk.Radiobutton(self.mainarea,padx =0, variable=self.setAnswerVar,value=4)
         self.setAnswer.grid(row=4,column=1,sticky="W")
         self.entryFourVar= StringVar(self.master)
         self.entryFour = Entry(self.mainarea,textvar=self.entryFourVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
         self.entryFour.grid(row=4,column=1,sticky="NWES", pady=10,padx=40,ipady=5,ipadx=5)
 
+        # Radio button next to entry boxes that store the multichoice answers
         self.export= Button(self.mainarea, text="Export",relief="flat", bg="#46178f", fg="white", width=15,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.export)
         self.export.grid(row=5,column=1,sticky="E",padx=40, pady=5)
 
-        self.createQuizList.insert(END,"Question 1")
-        self.createQuizList.bind('<<ListboxSelect>>', self.createQuizListSelect)
+    # Saves the question to a dictionary
+    def saveQuestion(self):
+        # Sets each entry background to default colour
+        self.entryOne.config(bg="lightgrey")
+        self.entryTwo.config(bg="lightgrey")
+        self.entryThree.config(bg="lightgrey")
+        self.entryFour.config(bg="lightgrey")
+        self.questionTitle.config(bg="lightgrey")
 
-    def export(self):
-        self.saveQuestion()
-        if self.createdQuestions < 1:
-            self.errortitleVar.set("Error! Must have a minimum of 3 Questions!")
+        # These statements check that there is a value in each of the entry boxes
+        if self.questionTitleVar.get() == "" or self.questionTitleVar.get() == "Insert Question Here":
+            self.errortitleVar.set("Error! Please enter Question!") # Alert user that this entry is not valid
+            self.questionTitle.config(bg="red") # Alert which entry contains the error
             return
+        if self.entryOneVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value") # Alert user that this entry is not valid
+            self.entryOne.config(bg="red") # Alert which entry contains the error
+            return
+        if self.entryTwoVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value") # Alert user that this entry is not valid
+            self.entryTwo.config(bg="red") # Alert which entry contains the error
+            return
+        if self.entryThreeVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value") # Alert user that this entry is not valid
+            self.entryThree.config(bg="red") # Alert which entry contains the error
+            return
+        if self.entryFourVar.get() == "":
+            self.errortitleVar.set("Error! Please enter a option value") # Alert user that this entry is not valid
+            self.entryFour.config(bg="red") # Alert which entry contains the error
+            return
+        # Store the question and question multichoice options in the dictionary
+        self.Quiz['questions'].update({"Q"+str(self.Qnum):{'question':self.questionTitleVar.get()}})
+        self.Quiz['questions']["Q"+str(self.Qnum)].update({'choices':[]})
+        self.Quiz['questions']["Q"+str(self.Qnum)].update({'answer':self.setAnswerVar.get()})
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryOneVar.get())
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryTwoVar.get())
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryThreeVar.get())
+        self.Quiz['questions']["Q"+str(self.Qnum)]['choices'].append(self.entryFourVar.get())
+        self.errortitleVar.set("") # Clear errortitle
+            
+    # Exports dictionary to .YEET file
+    # Users need to create a quiz that has at least 3 questions
+    def export(self):
+        self.saveQuestion() # Save question if not done already
+        if self.createdQuestions < 3:
+            self.errortitleVar.set("Error! Must have a minimum of 3 Questions!") 
+            return
+        
+        # Test each of the questions and choices for any index errors
         try:
             for i in range(1,self.createdQuestions+1):
                 self.Quiz['questions']["Q"+str(i)]['question']
                 for x in range(0,4):
                     self.Quiz['questions']["Q"+str(i)]['choices'][x]
-        except:
-            print(i)
-        self.mainarea.pack_forget()
+        except: # If there are index errors
+            print(i) # print errors if any
+
+        self.mainarea.pack_forget() # Delete mainarea
+
+        # Clear listboxes current questions
         self.createQuizList.delete(0, END)
+
+        # Add 'Export' to listbox and select it
         self.createQuizList.insert(END,"Export")
         self.createQuizList.selection_clear(0, END)
         self.createQuizList.selection_set("end")
-        self.Quiz["meta"]['length']=self.createdQuestions
+
+        # Create new frame which will hold the author and quiz name text boxes
         self.mainarea = tk.Frame(self.master, background='#F0F0F0', width=900, height=500)
         self.mainarea.pack(expand=True, fill='both', side='right')
+
+        # Style the new frame
         self.mainarea.grid_columnconfigure(0, weight=1)
         self.mainarea.grid_columnconfigure(1, weight=1)
         self.mainarea.grid_columnconfigure(2, weight=1)
         self.mainarea.grid_columnconfigure(3, weight=1)
+
+        # Create a new title 
         self.title = Label(self.mainarea, text="KaYEET Quiz Creator", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
         self.title.grid(row=0,column=0,sticky="we",columnspan=4)
 
+        # Create label for any errors
         self.errortitleVar= StringVar(self.master)
         self.errortitleVar.set("")
         self.errortitle = Label(self.mainarea, textvar=self.errortitleVar,relief="flat", bg="#F0F0F0", fg="red",font=('Helvetica Neue',12,"bold"),wraplength=400,pady=5)
         self.errortitle.grid(row=1,column=0,columnspan=4,sticky="EWN")
-        
+
+        # Create variable and label for the quiz name
         self.quizNameVar= StringVar(self.master)
         self.quizNameLabel= Label(self.mainarea, text="Quiz Name", bg="#F0F0F0", fg="black",font=('Helvetica Neue',16))
         self.quizNameLabel.grid(row=2,column=0,sticky="E")
         self.quizName = Entry(self.mainarea,textvar=self.quizNameVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
         self.quizName.grid(row=2,column=1,sticky="WE", padx=30,pady=30,ipady=5,ipadx=50,columnspan=1)
 
+        # Create variable and label for the quiz author
         self.quizAuthorVar= StringVar(self.master)
         self.quizAuthorLabel= Label(self.mainarea, text="Author", bg="#F0F0F0", fg="black",font=('Helvetica Neue',15))
         self.quizAuthorLabel.grid(row=3,column=0,sticky="E")
         self.quizAuthor = Entry(self.mainarea,textvar=self.quizAuthorVar,relief="flat", bg="lightgrey",fg="black",font=('Helvetica Neue',16))
         self.quizAuthor.grid(row=3,column=1,sticky="WE",padx=30, pady=30,ipady=5,ipadx=50,columnspan=1)
 
+        # Create an export button which when pressed, will export the file to (Quiz name).YEET
         self.export= Button(self.mainarea, text="Export",relief="flat", bg="#46178f", fg="white", width=15,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.exportFile)
         self.export.grid(row=4,column=1,sticky="E",padx=0, pady=5)
 
+    # Exports the file to (Quiz name).YEET
     def exportFile(self):
+        # Reset the values to their default if they were changed
         self.errortitleVar.set("")
         self.quizName.config(bg="lightgrey")
         self.quizAuthor.config(bg="lightgrey")
+
+        # Check that a string has been entered in quizName entry
         if self.quizNameVar.get() == "":
             self.quizName.config(bg="red")
             self.errortitleVar.set("Error! Please Enter Quiz Name!")
             return
+
+         # Check that a string has been entered into the quizAuthor entry
         if self.quizAuthorVar.get() == "":
             self.quizAuthor.config(bg="red")
             self.errortitleVar.set("Error! Please Enter Author Name")
             return
+
+        # Check to make sure the file doesn't already exist
         if glob.glob(self.quizNameVar.get()+".YEET"):
             self.quizName.config(bg="red")
             self.errortitleVar.set("Error! This Quiz Already Exists!")
             return
+        
+        # set the length of the quiz
+        self.Quiz["meta"]['length']=self.createdQuestions
+        
+        # set the author value to the quiz
         self.Quiz["meta"]['author']= self.quizAuthorVar.get()
+
+        # Create new file with the extension .YEET
         with open(str(self.quizNameVar.get())+".YEET", "w") as jsonFile:
+            # Write the dictionary data to the file
             json.dump(self.Quiz, jsonFile)
+
+        # Clear frame
         self.mainarea.destroy()
         self.scrollbar.destroy()
         self.sidebar.destroy()
+
+        # Go back to home
         self.home()
 
+# Function run on load
 def init():   
-    root = Tk()
-    root.minsize("1000","750")
-    root.maxsize("1000","750")
-    homescreen=QuizGUI(root)
-    print("\tKaYEET Started!\t\tMade By Josh Boag\n"+"-"*55)
-    root.mainloop()
+    root = Tk() # Create Tkinter object 
+    root.minsize("1000","750") # Creates static window
+    root.maxsize("1000","750") # <-|
+    homescreen=QuizGUI(root) # Run the object
+    print("\tKaYEET Started!\t\tMade By Josh Boag\n"+"-"*55) # Print start message
+    root.mainloop() # Continue running the program 
 
-init()
+init() # call when loaded
