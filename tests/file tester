@@ -1,0 +1,2 @@
+if glob.glob("Jack is a babe.YEET"):
+    print(glob)

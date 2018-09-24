@@ -1,3 +1,12 @@
+#  __  ___      ___   ____    ____  _______  _______ .___________.
+# |  |/  /     /   \  \   \  /   / |   ____||   ____||           |
+# |  '  /     /  ^  \  \   \/   /  |  |__   |  |__   `---|  |----`
+# |    <     /  /_\  \  \_    _/   |   __|  |   __|      |  |     
+# |  .  \   /  _____  \   |  |     |  |____ |  |____     |  |     
+# |__|\__\ /__/     \__\  |__|     |_______||_______|    |__|     
+                                                               
+
+
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -7,12 +16,73 @@ import time,os,json,glob
 from PIL import ImageTk
 
 # When called, the Questions class converts an entire file (".YEET") to a Python Dictionary.
-# This is a faster method than individually appending a value to a dictionary
+# This is a faster method than individually appending a value to each key in a dictionary
 class Questions:
-    def __init__(self, **entries): 
-        self.__dict__.update(entries)
+    def __init__(self, **entries): # Initalize the class
+        self.__dict__.update(entries) # Add all values to a class dictionary
         
-class QuizGUI:
+class QuizGUI: # The entire programs main class
+    def __init__(self, master): # 
+        self.master=master # Defines the objects binding class
+        self.home() # Runs the starting homescreen. This is a function due to the fact it needs to be run mulitiple times (After finishing a Quiz / After Creating a Quiz)
+
+    def home(self):  # Homescreen Function 
+        # Defines the homescreen frame (That will hold all the Homescreen buttons and other visual elements)
+        self.homescreen = tk.Frame(self.master, background='#F0F0F0')
+        self.homescreen.pack(expand=True, fill='both', side='right')
+
+        # Homescreen Configure
+        # Define the rules of all the grid dimensions
+        # Uniform means they are symetrical either side
+        # Weight defines the proportiate dimensions of a frame. Weight with a value of 2 will mean it is proportionally twice the size of a weight value of 1.
+        self.homescreen.grid_columnconfigure(0, weight=1,uniform="yes")
+        self.homescreen.grid_columnconfigure(1, weight=1,uniform="yes")
+        self.homescreen.grid_columnconfigure(2, weight=1,uniform="yes")
+        self.homescreen.grid_rowconfigure(1, weight=0,uniform="yes")
+        self.homescreen.grid_rowconfigure(2, weight=2,uniform="yes")
+        self.homescreen.grid_rowconfigure(3, weight=0,uniform="yes")
+        self.homescreen.grid_rowconfigure(4, weight=1,uniform="yes")
+
+        # Title Element
+        # Full width due to the spanning over 3 columns and being sticky to the West and East
+        self.title = Label(self.homescreen, text="KaYEET", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
+        self.title.grid(row=0,column=0,sticky="we",columnspan=3)
+
+        self.selectedFileVar= StringVar(self.master)
+        self.selectedFileVar.set("Select a Built-in Quiz or click 'Open' to Play your Own")
+        self.selectedFile = Label(self.homescreen, textvar=self.selectedFileVar, bg="lightgrey", fg="Black",font=('Helvetica Neue',14,"normal"),wraplength=700,pady=10)
+        self.selectedFile.grid(row=3,column=0,sticky="we",columnspan=3)
+
+        self.browseQuiz = Listbox(self.homescreen,bg="lightgrey",fg="black",bd=1,height=2,font=("Montserrat",16),activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
+        self.browseQuiz.grid(row=2, column=0, sticky="NWES",columnspan=3,padx=150,pady=10,rowspan=1,ipady=10,ipadx=10)
+        self.scrollbar = tk.Scrollbar(self.browseQuiz)
+        self.scrollbar.pack( side = RIGHT, fill = Y )
+
+        self.metaVar= StringVar(self.master)
+        self.meta = Label(self.homescreen, textvar=self.metaVar, bg="lightgrey", fg="Black",font=('Helvetica Neue',14,"normal"),wraplength=700,pady=10)
+        self.meta.grid(row=1,column=0,sticky="we",columnspan=3)
+
+        #for i in range(0,len(glob.glob1(os.getcwd(),"*.json"))):
+        #os.chdir(os.getcwd())
+        for file in glob.glob("*.YEET"):
+            self.browseQuiz.insert(END,file.split(".")[0])
+        self.browseQuiz.bind('<<ListboxSelect>>', self.selectQuiz)
+        #self.sidelist.curselection()
+        
+        self.browseQuiz.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.browseQuiz.yview)
+
+        self.buttonWidth=20
+        self.buttonHeight=2
+        self.buttonPadY=10
+        self.buttonFont= font.Font(family="Montserrat", size=16, weight='bold')
+        self.button1 = tk.Button(self.homescreen, text = 'Start',state=DISABLED, command = self.startQuiz,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button1.grid(row=4,column=0,pady=self.buttonPadY)
+        self.button2 = tk.Button(self.homescreen, text = 'Open', command = self.fileExplore,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button2.grid(row=4,column=1,pady=self.buttonPadY)
+        self.button3 = tk.Button(self.homescreen, text = 'Create',command=self.createQuiz,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
+        self.button3.grid(row=4,column=2,pady=self.buttonPadY)
+        
     def default(self):
         self.sidelist.selection_clear(0, END)
         self.sidelist.selection_set( first = 0 )
@@ -353,11 +423,6 @@ class QuizGUI:
 
     def clearMaster(self):
         self.homescreen.pack_forget()
-    
-    def __init__(self, master):
-        # sidebar
-        self.master=master
-        self.home()
 
     def preload(self):
         self.sidebar = tk.Frame(self.master, width=200, bg='#F0F0F0', height=500, relief='sunken', borderwidth=0)
@@ -397,53 +462,6 @@ class QuizGUI:
         self.sidelist.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.sidelist.yview)
 
-    def home(self):
-        self.homescreen = tk.Frame(self.master, background='#F0F0F0', width=500, height=500)
-        self.homescreen.pack(expand=True, fill='both', side='right')
-        self.homescreen.grid_columnconfigure(0, weight=1,uniform="yes")
-        self.homescreen.grid_columnconfigure(1, weight=1,uniform="yes")
-        self.homescreen.grid_columnconfigure(2, weight=1,uniform="yes")
-        self.homescreen.grid_rowconfigure(1, weight=0,uniform="yes")
-        self.homescreen.grid_rowconfigure(2, weight=2,uniform="yes")
-        self.homescreen.grid_rowconfigure(3, weight=0,uniform="yes")
-        self.homescreen.grid_rowconfigure(4, weight=1,uniform="yes")
-        self.title = Label(self.homescreen, text="KaYEET", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
-        self.title.grid(row=0,column=0,sticky="we",columnspan=3)
-
-        self.selectedFileVar= StringVar(self.master)
-        self.selectedFileVar.set("Select a Built-in Quiz or click 'Open' to Play your Own")
-        self.selectedFile = Label(self.homescreen, textvar=self.selectedFileVar, bg="lightgrey", fg="Black",font=('Helvetica Neue',14,"normal"),wraplength=700,pady=10)
-        self.selectedFile.grid(row=3,column=0,sticky="we",columnspan=3)
-
-        self.browseQuiz = Listbox(self.homescreen,bg="lightgrey",fg="black",bd=1,height=2,font=("Montserrat",16),activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
-        self.browseQuiz.grid(row=2, column=0, sticky="NWES",columnspan=3,padx=150,pady=10,rowspan=1,ipady=10,ipadx=10)
-        self.scrollbar = tk.Scrollbar(self.browseQuiz)
-        self.scrollbar.pack( side = RIGHT, fill = Y )
-
-        self.metaVar= StringVar(self.master)
-        self.meta = Label(self.homescreen, textvar=self.metaVar, bg="lightgrey", fg="Black",font=('Helvetica Neue',14,"normal"),wraplength=700,pady=10)
-        self.meta.grid(row=1,column=0,sticky="we",columnspan=3)
-
-        #for i in range(0,len(glob.glob1(os.getcwd(),"*.json"))):
-        #os.chdir(os.getcwd())
-        for file in glob.glob("*.YEET"):
-            self.browseQuiz.insert(END,file.split(".")[0])
-        self.browseQuiz.bind('<<ListboxSelect>>', self.selectQuiz)
-        #self.sidelist.curselection()
-        
-        self.browseQuiz.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.browseQuiz.yview)
-
-        self.buttonWidth=20
-        self.buttonHeight=2
-        self.buttonPadY=10
-        self.buttonFont= font.Font(family="Montserrat", size=16, weight='bold')
-        self.button1 = tk.Button(self.homescreen, text = 'Start',state=DISABLED, command = self.startQuiz,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
-        self.button1.grid(row=4,column=0,pady=self.buttonPadY)
-        self.button2 = tk.Button(self.homescreen, text = 'Open', command = self.fileExplore,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
-        self.button2.grid(row=4,column=1,pady=self.buttonPadY)
-        self.button3 = tk.Button(self.homescreen, text = 'Create',command=self.createQuiz,relief="flat", bg="#c01733",fg="white",width=self.buttonWidth,height=self.buttonHeight,font=self.buttonFont)
-        self.button3.grid(row=4,column=2,pady=self.buttonPadY)
 
     def select(self,other):
         a = int(str(self.sidelist.get(self.sidelist.curselection())).split(" ")[1])
