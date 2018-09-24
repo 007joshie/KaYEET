@@ -344,24 +344,28 @@ class QuizGUI: # The entire programs main class
         answer= self.__quiz.questions["Q"+str(getquestionnum)]['answer'] # Get answer from corresponding question in the lisbox
         if answer == choice: # If the user selected answer is the same as found in the dictionary
             self.__answersCorrect.append(getquestionnum) # Append this question number to __answersCorrect variable
-            print(str(getquestionnum)+": Correct")
-            self.sidelist.itemconfig(getquestionnum-1, {'fg': '#66bf39'})
+            print(str(getquestionnum)+": Correct") # Print question number and result
+            self.sidelist.itemconfig(getquestionnum-1, {'fg': '#66bf39'}) # Change the curent sidebar listbox item to green
         else:
-            print(str(getquestionnum)+": Incorrect")
-            self.sidelist.itemconfig(getquestionnum-1, {'fg': 'red'})
-        self.disableQuestion()
-        self.next()
+            print(str(getquestionnum)+": Incorrect") # Print question number and result
+            self.sidelist.itemconfig(getquestionnum-1, {'fg': 'red'}) # Change the curent sidebar listbox item to red
+        self.disableQuestion() # Disable the question for the future
+        self.next() # go to the next question
 
+    # Check if the current question is disabled
+    # This returns either true or false
     def isDisabled(self):
-        if self.getval() in self.questionsAnswered:
+        if self.getval() in self.questionsAnswered: # Checks if answer has been given in the questionsAnswered list
             return True
         else:
             return False
 
+    # Appends the answered question to questionsAnswered list
     def disableQuestion(self):
         self.questionsAnswered.append(self.getval())
-        self.displayQuesiton()
+        self.displayQuesiton() # Disables question from being answered twice
 
+    # This function will 
     def skip(self):
         if self.getval() == (int(self.__quiz.meta['length'])):
             start=1
