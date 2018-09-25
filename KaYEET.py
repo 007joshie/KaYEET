@@ -578,7 +578,7 @@ class QuizGUI: # The entire programs main class
         self.questionTitle = Entry(self.mainarea, textvar=self.questionTitleVar, bg="lightgrey", fg="black",font=('Helvetica Neue',18))
         self.questionTitle.grid(row=2,column=0,sticky="we",columnspan=4,padx=40,pady=40,ipady=5,ipadx=5)
 
-        # Configure the grid layout
+        # Configure the grid layout, 
         self.mainarea.grid_columnconfigure(0, weight=1)
         self.mainarea.grid_columnconfigure(1, weight=1)
         self.mainarea.grid_rowconfigure(0, weight=0)
@@ -698,17 +698,19 @@ class QuizGUI: # The entire programs main class
         self.mainarea = tk.Frame(self.master, background='#F0F0F0', width=900, height=500)
         self.mainarea.pack(expand=True, fill='both', side='right')
 
-        # Style the new frame
+        # Configure the new frames grid layout
         self.mainarea.grid_columnconfigure(0, weight=1)
         self.mainarea.grid_columnconfigure(1, weight=1)
         self.mainarea.grid_columnconfigure(2, weight=1)
         self.mainarea.grid_columnconfigure(3, weight=1)
 
-        # Create a new title 
+        # Create a new title
+        # This is displayed as a full width header
         self.title = Label(self.mainarea, text="KaYEET Quiz Creator", bg="#46178f", fg="white",font=('Helvetica Neue',24,"bold"),wraplength=700,pady=5)
         self.title.grid(row=0,column=0,sticky="we",columnspan=4)
 
         # Create label for any errors
+        # This is displayed as a full width header
         self.errortitleVar= StringVar(self.master)
         self.errortitleVar.set("")
         self.errortitle = Label(self.mainarea, textvar=self.errortitleVar,relief="flat", bg="#F0F0F0", fg="red",font=('Helvetica Neue',12,"bold"),wraplength=400,pady=5)
