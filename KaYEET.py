@@ -138,9 +138,9 @@ class QuizGUI: # The entire programs main class
         self.browseQuiz.selection_clear(0,END) # Clears selection of the listbox
 
         # The filedialog box can only open files with the extension .YEET. It is unlikely that there are other files with the same extension so we can safely assume it is valid
-        self.filename = filedialog.askopenfilename(initialdir = os.getcwd(),title = "Select KaYEET Quiz file",filetypes = [("KaYEET Quiz Files","*.YEET")]) # Calls the file dialog box
+        self.filename = filedialog.askopenfilename(initialdir = str(os.getcwd())+"/tests",title = "Select KaYEET Quiz file",filetypes = [("KaYEET Quiz Files","*.YEET"),("Legacy KaYEET Quiz Files","*.json")]) # Calls the file dialog box
         if self.filename: # If a valid file is selected
-            print("File Selected")
+            print("File Selected:",self.filename)
             self.meta= (json.load(open(str(self.filename))))
             self.metaVar.set("Made by: "+self.meta['meta']['author']+"\tQuestions: "+str(self.meta['meta']['length'])) # Present the meta data found in Quiz File
             self.selectedFileVar.set("Selected: "+str(self.filename)) # Present the Quiz name in selectedFile element
@@ -162,7 +162,7 @@ class QuizGUI: # The entire programs main class
         # This variable holds the entire quiz dictionary
         # This is a faster method than individually appending a value to each key in a dictionary
         self.__quiz= Questions(**(json.load(open(self.filename)))) # The filename is the file that was 'opened' or clicked on in the homescreen
-
+        print("\n"*50,"\t"+str(self.__quiz.meta['title'])+"\t\tBy "+str(self.__quiz.meta['author'])+"\n"+"-"*55)
         self.preload() # Loads the values of the first question
         self.displayFrame() # Loads the
         self.default()
@@ -180,10 +180,15 @@ class QuizGUI: # The entire programs main class
         # Adds the dropdown menu with some basic functions
         self.menubar = Menu(self.master) # Binded to the master window
         self.master.config(menu=self.menubar)
-        fileMenu = Menu(self.menubar) # Creates new menu
-        fileMenu.add_command(label="Exit", command=self.onExit)    # Stops the mainloop so the console be used
-        fileMenu.add_command(label="Reset", command=self.default)  # Resets the quiz to the first question
+        fileMenu = Menu(self.menubar,tearoff=0) # Creates new menu
+        fileMenu.add_command(label="Restart Quiz", command=self.default)  # Resets the quiz to the first question
+        fileMenu.add_command(label="Skip Question", command=self.skip)
+        fileMenu.add_command(label="Finish Quiz", command=self.quizComplete)
         self.menubar.add_cascade(label="Options", menu=fileMenu) # Assigns the above functions under the Options menu
+        quizmenu = Menu(self.master, tearoff=0) # Tearoff 0 means that the menu cannot be open in another mini window
+        quizmenu.add_command(label="Debug", command=self.onExit)    # Stops the mainloop so the console be used
+        quizmenu.add_command(label="Quiz by "+str(self.__quiz.meta['author']),state="disabled")
+        self.menubar.add_cascade(label="About", menu=quizmenu)
 
         # Defines the variables and images before the main frame elements are placed
         # The images are similar to those found on Kahoot and are stored in the /images folder
@@ -224,7 +229,7 @@ class QuizGUI: # The entire programs main class
         self.questionsAnswered=[] # Resets the list of questions the user has answered
         for i in range(1,int(self.__quiz.meta['length'])+1):    # <-| Adds all the questions to the listbox
             self.sidelist.itemconfig(i-1, {'fg': 'black'})      # <-|
-        self.displayQuesiton(self,1)    # Runs the displayQuestion function
+        self.displayQuestion(self,1)    # Runs the displayQuestion function
 
     # This function will render the items on the frame
     # This frame is for when the user is answering questions (ie. the Question and the four multichoice answers)
@@ -298,10 +303,10 @@ class QuizGUI: # The entire programs main class
     # I didn't want to use the index method (starting at 0) because we are only working with numbers >= 1. I didn't want to complicate having to add +1 each time to my index
     def select(self,other):
         a = int(str(self.sidelist.get(self.sidelist.curselection())).split(" ")[1])
-        self.displayQuesiton(self,a) # Displays the question of the question number selected
+        self.displayQuestion(self,a) # Displays the question of the question number selected
 
     # If a question has already been answered then its buttons will be disabled
-    def displayQuesiton(self,other=None,Qnum=None): # If a number is parsed, then that number will be called to display
+    def displayQuestion(self,other=None,Qnum=None): # If a number is parsed, then that number will be called to display
         self.displayFrame() # Make sure that the template is showing
 
         # This function will check if the question has already been answered
@@ -367,7 +372,7 @@ class QuizGUI: # The entire programs main class
     # Appends the answered question to questionsAnswered list
     def disableQuestion(self):
         self.questionsAnswered.append(self.getval())
-        self.displayQuesiton() # Disables question from being answered twice
+        self.displayQuestion() # Disables question from being answered twice
 
     # This function will go to te next avaliable question that is unanswered
     # If all questions are answered, then it will not skip to any questions
@@ -382,7 +387,7 @@ class QuizGUI: # The entire programs main class
                 if i == self.getval():
                     continue
                 else:
-                    self.displayQuesiton(Qnum=i) # Display unanswered question
+                    self.displayQuestion(Qnum=i) # Display unanswered question
                     self.sidelist.selection_clear(0, END) # clear selection
                     self.sidelist.selection_set( first = i-1 ) # set selection to unanswered question
                     return
@@ -401,7 +406,7 @@ class QuizGUI: # The entire programs main class
                     continue
                 else:
                     self.sidelist.selection_set( first = i-1 )
-                    self.displayQuesiton(Qnum=i) # Display unanswered question
+                    self.displayQuestion(Qnum=i) # Display unanswered question
                     self.sidelist.selection_clear(0, END)
                     self.sidelist.selection_set( first = i-1 )
                     return
@@ -485,6 +490,8 @@ class QuizGUI: # The entire programs main class
         self.resetHome= Button(self.finishFrame, text="Home",relief="flat", bg="#46178f", fg="white", width=10,height=2, highlightcolor="red", font=("Montserrat", '12','bold'),command=self.resetAll)
         self.resetHome.pack()
 
+        print("-"*55,"\n\tCorrect: "+str(correct)+"\t\tIncorrect: "+str(wrong))
+
     # This function destroys the results frame and other elements, then displays homescreen
     def resetAll(self):
         self.itemsPacked= False
@@ -540,7 +547,7 @@ class QuizGUI: # The entire programs main class
         self.sidebar.pack(expand=False, fill='both', side='left', anchor='nw')
         self.scrollbar = tk.Scrollbar(self.master)
         self.scrollbar.pack( side = LEFT, fill = Y )
-        self.createQuizList = Listbox(self.sidebar,height=700,width=15,bg="#F0F0F0",fg="#757515",font=("Montserrat",16),selectmode="tk.BROWSE", exportselection=False,activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
+        self.createQuizList = Listbox(self.sidebar,height=700,width=15,bg="#F0F0F0",fg="black",font=("Montserrat",16),selectmode="tk.BROWSE", exportselection=False,activestyle='none',borderwidth=0,relief="flat",highlightthickness=0)
         self.createQuizList.pack(padx=5,pady=50)
 
         # Set default lisbox value
@@ -759,11 +766,14 @@ class QuizGUI: # The entire programs main class
             self.errortitleVar.set("Error! This Quiz Already Exists!")
             return
         
-        # set the length of the quiz
+        # Set the length of the quiz
         self.Quiz["meta"]['length']=self.createdQuestions
         
-        # set the author value to the quiz
+        # Set the author value to the quiz
         self.Quiz["meta"]['author']= self.quizAuthorVar.get()
+
+        # Set the title value to the quiz
+        self.Quiz["meta"]['title']= self.quizNameVar.get()
 
         # Create new file with the extension .YEET
         with open(str(self.quizNameVar.get())+".YEET", "w") as jsonFile:
@@ -783,8 +793,10 @@ def init():
     root = Tk() # Create Tkinter object 
     root.minsize("1000","750") # Creates static window
     root.maxsize("1000","750") # <-|
+    root.title('KaYEET Quiz Game') # Set the window name to 'KaYEET'
+    root.iconbitmap('images/icon.ico') # Set the window Icon to that of the KaYeet Logo
     homescreen=QuizGUI(root) # Run the object
-    print("\tKaYEET Started!\t\tMade By Josh Boag\n"+"-"*55) # Print start message
+    print("\n"*50,"\tKaYEET Started!\t\tMade By Josh Boag\n"+"-"*55) # Print start message
     root.mainloop() # Continue running the program 
 
 init() # call when loaded
